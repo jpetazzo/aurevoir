@@ -22,12 +22,13 @@ class ServiceListener(object):
         lock.acquire()
         log.info("Discovered {}".format(service_name))
         info = z.get_service_info(service_type, service_name)
-        if len(info.address) == 4:
-            info.ipv4 = '.'.join(str(ord(b)) for b in info.address)
-            log.debug("Expanded {!r} to {}".format(info.address, info.ipv4))
-        else:
-            log.warning("Address {!r} length != 4; setting IPV4 field to empty string!".format(info.address))
-            info.ipv4 = ''
+        info.ipv4 = None
+        for address in info.addresses:
+            if len(address) == 4:
+                info.ipv4 = '.'.join(str(b) for b in address)
+                log.debug("Expanded {!r} to {}".format(address, info.ipv4))
+            else:
+                log.warning("Address {!r} length != 4; ignoring it!".format(info.address))
         services[service_name] = info
         log.debug("We now have {} services".format(len(services)))
         lock.release()
